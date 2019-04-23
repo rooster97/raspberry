@@ -1,0 +1,12 @@
+Compile : 
+1. wiringled.c
+ gcc -o wiringled wiringled.c -lwiringPi
+2. bluetooth_server.c
+ sudo apt-get install build-essential
+ sudo apt-get install libbluetooth-dev
+ gcc bluetooth_server.c -o bluetooth_server -lbluetooth -lpthread
+
+ /etc/systemd/system/dbus-org.bluez.service
+  ExecStart=/usr/lib/bluetooth/bluetoothd --compat
+ ~/.bashrc
+  sudo chmod 777 /var/run/sdp
