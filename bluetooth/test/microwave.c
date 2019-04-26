@@ -8,8 +8,8 @@ int main (int argc, char *argv[])
 {
 	int trig = 2 ;
 	int echo = 8 ;
-	float start_time, end_time ;
-	float distance ;
+	int start_time, end_time ;
+	int distance ;
 
 	if (wiringPiSetup() == -1)
 	{
@@ -34,7 +34,7 @@ int main (int argc, char *argv[])
 		while (digitalRead(echo) == 1) ;
 		end_time = micros() ;
 
-		distance = (end_time - start_time) / 29. / 2. ;	// Ultrasound is 1cm per 29.1 microsecond, 2 is roundtrip.
-		printf("distance %.2f cm\n", distance) ;
+		distance = (end_time - start_time) / 29 / 2 ;	// Ultrasound is 1cm per 29 microsecond, 2 is roundtrip.
+		printf("distance %d cm\n", distance) ;
 	}
 }
