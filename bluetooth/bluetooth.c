@@ -11,10 +11,17 @@
 #include <sys/wait.h>
 #include <pthread.h>
 #include <signal.h>
+#include <wiringPi.h>
 
-#define RASPBERRY_MAX_CLIENT_NUM	10
+#define RASPBERRY_MAX_CLIENT_NUM			10
+#define RASPBERRY_DEFAULT_LIMIT_DISTANCE	50
+#define RASPBERRY_LIMIT_DISTANCE_STRING		"limit distance:"
+#define	RASPBERRY_GPIO_TRIG_NUMBER			2
+#define	RASPBERRY_GPIO_ECHO_NUMBER			8
 
 int numClient=0;
+int limitDistance;
+int limitStringLen;
 int clientSock[RASPBERRY_MAX_CLIENT_NUM];
 
 void *ThreadMain(void *argument);
@@ -175,14 +182,22 @@ sdp_session_t *register_service(uint8_t rfcomm_channel) {
 
 char *read_msg_from_bluetooth (int sock, int i) 
 {
-	char buff[1024] = { 0 };
-	
+	int limit;
+	char buff[1024] = {0, };
+	char buff2[1024] = {0, };
+
 	// read data from the client
 	int bytes_read;
 	bytes_read = read(sock, buff, sizeof(buff));
 	if (bytes_read > 0) 
 	{
 		printf("received : %s\n", buff);
+		if (strncmp (buff, RASPBERRY_LIMIT_DISTANCE_STRING, limitStringLen) == 0)
+		{	
+			strcpy (buff2, buff + limitStringLen); 
+			limitDistance = atoi (buff2);	
+			printf("[Set] Limit Distance %d \n", limitDistance);
+		}
 	} 
 	else 
 	{
@@ -195,16 +210,14 @@ char *read_msg_from_bluetooth (int sock, int i)
 	}
 }
 
-void write_server(int client, char *message) 
+void write_msg_in_bluetooth (int sock, char *message) 
 {
-	// send data to the client
-	char messageArr[1024] = { 0 };
 	int bytes_sent;
-	strcpy(messageArr, message);
 
-	bytes_sent = write(client, messageArr, strlen(messageArr));
-	if (bytes_sent > 0) {
-		printf("sent [%s] %d\n", messageArr, bytes_sent);
+	bytes_sent = write(sock, message, strlen(message));
+	if (bytes_sent > 0) 
+	{
+		printf("sent : %s ", message);
 	}
 }
 
@@ -220,6 +233,38 @@ int get_max_fd (int connSock)
 	}
 }
 
+void check_mircrowave ()
+{
+	int i;	
+	int distance;
+	int start_time, end_time;
+	char buff[128] = "";
+
+	pinMode(RASPBERRY_GPIO_TRIG_NUMBER, OUTPUT);
+	pinMode(RASPBERRY_GPIO_ECHO_NUMBER, INPUT);
+
+	digitalWrite(RASPBERRY_GPIO_TRIG_NUMBER, LOW);  // Init Trigger
+	delay (1000);	// 1 sec
+	digitalWrite(RASPBERRY_GPIO_TRIG_NUMBER, HIGH) ;	// send signal
+	delayMicroseconds(10) ;		// 10 * 0.000001 sec
+	digitalWrite(RASPBERRY_GPIO_TRIG_NUMBER, LOW) ;	// receive signal
+
+	while (digitalRead(RASPBERRY_GPIO_ECHO_NUMBER) == 0) ;	
+	start_time = micros() ;	// get microseconds after program runs
+
+	while (digitalRead(RASPBERRY_GPIO_ECHO_NUMBER) == 1) ;
+	end_time = micros() ;
+
+	distance = (end_time - start_time) / 29 / 2 ;	// Ultrasound is 1cm per 29 microsecond, 2 is roundtrip.
+	
+	if (distance < limitDistance)
+	{
+		sprintf (buff, "distance %d cm \n", distance);
+		for (i = 0; i < numClient; i++)
+			write_msg_in_bluetooth (clientSock[i], buff);	
+	}
+}
+
 int main()
 {
 	int i, ret;
@@ -227,15 +272,24 @@ int main()
 	int connSock;
 	struct timeval tv;
 	pthread_t thread_id;  
+	int port = 3, result, sock, client, bytes_read, bytes_sent;
+	struct sockaddr_rc loc_addr = { 0 }, rem_addr = { 0 };
+	char buffer[1024] = { 0 };
+	socklen_t opt = sizeof(rem_addr);
 
 	fd_set read_fds;
 
 	signal( SIGPIPE, SIG_IGN );  
 
-	int port = 3, result, sock, client, bytes_read, bytes_sent;
-	struct sockaddr_rc loc_addr = { 0 }, rem_addr = { 0 };
-	char buffer[1024] = { 0 };
-	socklen_t opt = sizeof(rem_addr);
+	if (wiringPiSetup() == -1)
+	{
+		printf ("[%s:%d] fail to call wiringPiSetup function: %s \n", __func__, __LINE__, strerror(errno));
+		exit(1) ;
+	}
+
+
+	limitDistance = RASPBERRY_DEFAULT_LIMIT_DISTANCE;
+	limitStringLen = strlen(RASPBERRY_LIMIT_DISTANCE_STRING);
 
 	// local bluetooth adapter
 	loc_addr.rc_family = AF_BLUETOOTH;
@@ -258,6 +312,7 @@ int main()
 
 	while(1)
 	{
+		/* FD set */
 		maxFd = get_max_fd (sock); 
 
 		FD_ZERO(&read_fds);
@@ -265,6 +320,10 @@ int main()
 
 		for (i = 0; i < numClient; i++)
 			FD_SET(clientSock[i], &read_fds);
+
+		/* set select interval. */
+		tv.tv_sec = 1;
+		tv.tv_usec = 0;
 
 		ret = select (maxFd, &read_fds, NULL, NULL, &tv);
 		if (ret < 0) 
@@ -278,8 +337,7 @@ int main()
 		}    
 		else if (ret == 0)
 		{
-			;
-			//
+			check_mircrowave ();	
 		}
 		else 
 		{
