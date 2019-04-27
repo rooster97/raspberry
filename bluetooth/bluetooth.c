@@ -16,8 +16,8 @@
 #define RASPBERRY_MAX_CLIENT_NUM			10
 #define RASPBERRY_DEFAULT_LIMIT_DISTANCE	50
 #define RASPBERRY_LIMIT_DISTANCE_STRING		"limit distance:"
-#define	RASPBERRY_GPIO_TRIG_NUMBER			2
-#define	RASPBERRY_GPIO_ECHO_NUMBER			8
+#define RASPBERRY_GPIO_TRIG					2
+#define RASPBERRY_GPIO_ECHO					8
 
 int numClient=0;
 int limitDistance;
@@ -194,8 +194,8 @@ char *read_msg_from_bluetooth (int sock, int i)
 		printf("received : %s\n", buff);
 		if (strncmp (buff, RASPBERRY_LIMIT_DISTANCE_STRING, limitStringLen) == 0)
 		{	
-			strcpy (buff2, buff + limitStringLen); 
-			limitDistance = atoi (buff2);	
+			strcpy (buff2, buff + limitStringLen);
+			limitDistance = atoi (buff2);
 			printf("[Set] Limit Distance %d \n", limitDistance);
 		}
 	} 
@@ -210,7 +210,7 @@ char *read_msg_from_bluetooth (int sock, int i)
 	}
 }
 
-void write_msg_in_bluetooth (int sock, char *message) 
+void write_msg_in_bluetooth (int sock, char *message)
 {
 	int bytes_sent;
 
@@ -231,28 +231,41 @@ int get_max_fd (int connSock)
 		if (clientSock[i] > max)
 			max = clientSock[i];
 	}
+
+	return max;
 }
 
-void check_mircrowave ()
+void check_distance_by_mircrowave ()
 {
-	int i;	
+	int i, count;	
 	int distance;
 	int start_time, end_time;
 	char buff[128] = "";
 
-	pinMode(RASPBERRY_GPIO_TRIG_NUMBER, OUTPUT);
-	pinMode(RASPBERRY_GPIO_ECHO_NUMBER, INPUT);
+	pinMode(RASPBERRY_GPIO_TRIG, OUTPUT);
+	pinMode(RASPBERRY_GPIO_ECHO, INPUT);
 
-	digitalWrite(RASPBERRY_GPIO_TRIG_NUMBER, LOW);  // Init Trigger
-	delay (1000);	// 1 sec
-	digitalWrite(RASPBERRY_GPIO_TRIG_NUMBER, HIGH) ;	// send signal
-	delayMicroseconds(10) ;		// 10 * 0.000001 sec
-	digitalWrite(RASPBERRY_GPIO_TRIG_NUMBER, LOW) ;	// receive signal
+	digitalWrite(RASPBERRY_GPIO_TRIG, LOW);  // Init Trigger
+	digitalWrite(RASPBERRY_GPIO_TRIG, HIGH) ;	// send signal
+	delayMicroseconds(10) ;		// send signal for 10 usec
+	digitalWrite(RASPBERRY_GPIO_TRIG, LOW) ;	// stop signal
 
-	while (digitalRead(RASPBERRY_GPIO_ECHO_NUMBER) == 0) ;	
+	count = 0;
+	while (digitalRead(RASPBERRY_GPIO_ECHO) == 0)
+	{
+		count++;
+		if (count > 2500000) // Abount 1/2 sec. Prepare for absence of microwave sensor.
+			break;
+	}
 	start_time = micros() ;	// get microseconds after program runs
 
-	while (digitalRead(RASPBERRY_GPIO_ECHO_NUMBER) == 1) ;
+	count = 0;
+	while (digitalRead(RASPBERRY_GPIO_ECHO) == 1)
+	{
+		count++;
+		if (count > 2500000) // abount 1/2 sec
+			break;
+	}
 	end_time = micros() ;
 
 	distance = (end_time - start_time) / 29 / 2 ;	// Ultrasound is 1cm per 29 microsecond, 2 is roundtrip.
@@ -272,7 +285,7 @@ int main()
 	int connSock;
 	struct timeval tv;
 	pthread_t thread_id;  
-	int port = 3, result, sock, client, bytes_read, bytes_sent;
+	int port = 3, result, sock;
 	struct sockaddr_rc loc_addr = { 0 }, rem_addr = { 0 };
 	char buffer[1024] = { 0 };
 	socklen_t opt = sizeof(rem_addr);
@@ -286,7 +299,6 @@ int main()
 		printf ("[%s:%d] fail to call wiringPiSetup function: %s \n", __func__, __LINE__, strerror(errno));
 		exit(1) ;
 	}
-
 
 	limitDistance = RASPBERRY_DEFAULT_LIMIT_DISTANCE;
 	limitStringLen = strlen(RASPBERRY_LIMIT_DISTANCE_STRING);
@@ -313,7 +325,7 @@ int main()
 	while(1)
 	{
 		/* FD set */
-		maxFd = get_max_fd (sock); 
+		maxFd = get_max_fd (sock) + 1; 
 
 		FD_ZERO(&read_fds);
 		FD_SET(sock, &read_fds);
@@ -326,7 +338,7 @@ int main()
 		tv.tv_usec = 0;
 
 		ret = select (maxFd, &read_fds, NULL, NULL, &tv);
-		if (ret < 0) 
+		if (ret < 0) // Error 
 		{    
 			if (errno == EINTR)
 				continue;
@@ -335,11 +347,11 @@ int main()
 
 			continue;
 		}    
-		else if (ret == 0)
+		else if (ret == 0) // Timeout
 		{
-			check_mircrowave ();	
+			check_distance_by_mircrowave ();	
 		}
-		else 
+		else // Receive Message
 		{
 			if (FD_ISSET (sock ,&read_fds))
 			{
@@ -349,7 +361,7 @@ int main()
 				clientSock[numClient++] = connSock;
 			}
 		
-			for (i = 0; i < RASPBERRY_MAX_CLIENT_NUM; i++)
+			for (i = 0; i < numClient; i++)
 			{
 				if (FD_ISSET (clientSock[i] ,&read_fds))
 				{
@@ -358,50 +370,4 @@ int main()
 			}
 		}
 	}
-
-#if 0
-	while(1)
-	{
-		// accept one connection
-		printf("calling accept()\n");
-		client = accept(sock, (struct sockaddr *)&rem_addr, &opt);
-		printf("accept() returned %d\n", client);
-
-		ba2str(&rem_addr.rc_bdaddr, buffer);
-		fprintf(stderr, "accepted connection from %s\n", buffer);
-		memset(buffer, 0, sizeof(buffer));
-
-		pthread_create( &thread_id, NULL, ThreadMain, (void*)client);   
-	}
-#endif
 }
-
-
-#if 0
-void *ThreadMain(void *argument)  
-{  
-	char buf[1024];  
-
-	pthread_detach(pthread_self());  
-	int client = (int)argument;  
-
-
-	while(1)  
-	{  
-		char *recv_message = read_server(client);
-		if ( recv_message == NULL ){
-			printf("client disconnected\n");
-			break;
-		} 
-
-		printf("%s\n", recv_message);
-
-		write_server(client, recv_message);
-	}  
-
-	printf("disconnected\n" );  
-	close(client);  
-
-	return 0;     
-}  
-#endif

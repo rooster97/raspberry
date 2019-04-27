@@ -1,1 +1,8 @@
-gcc bluetooth.c -o bluetooth -lbluetooth -lpthread -lwiringPi
+Intall need:
+ sudo apt-get install build-essential
+ sudo apt-get install libbluetooth-dev 
+ sudo apt install pulseaudio-module-bluetooth 
+ pulseaudio -k (kill pulseaudio. Maybe not need)
+ pulseaudio --start
+Compile:
+ gcc bluetooth.c -o bluetooth -lbluetooth -lpthread -lwiringPi
