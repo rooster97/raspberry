@@ -28,9 +28,9 @@ void *ThreadMain(void *argument);
 bdaddr_t bdaddr_any = {0, 0, 0, 0, 0, 0};
 bdaddr_t bdaddr_local = {0, 0, 0, 0xff, 0xff, 0xff};
 
-int _str2uuid( const char *uuid_str, uuid_t *uuid ) {
+int _str2uuid( const char *uuid_str, uuid_t *uuid) 
+{
 	/* This is from the pybluez stack */
-
 	uint32_t uuid_int[4];
 	char *endptr;
 
@@ -182,7 +182,6 @@ sdp_session_t *register_service(uint8_t rfcomm_channel) {
 
 char *read_msg_from_bluetooth (int sock, int i) 
 {
-	int limit;
 	char buff[1024] = {0, };
 	char buff2[1024] = {0, };
 
@@ -287,7 +286,6 @@ int main()
 	pthread_t thread_id;  
 	int port = 3, result, sock;
 	struct sockaddr_rc loc_addr = { 0 }, rem_addr = { 0 };
-	char buffer[1024] = { 0 };
 	socklen_t opt = sizeof(rem_addr);
 
 	fd_set read_fds;
@@ -310,6 +308,7 @@ int main()
 
 	// register service
 	sdp_session_t *session = register_service(port);
+	
 	// allocate socket
 	sock = socket(AF_BLUETOOTH, SOCK_STREAM, BTPROTO_RFCOMM);
 	printf("socket() returned %d\n", sock);
