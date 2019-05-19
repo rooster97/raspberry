@@ -12,6 +12,7 @@
 #include <pthread.h>
 #include <signal.h>
 #include <wiringPi.h>
+#include <syslog.h>
 
 #define RASPBERRY_MAX_CLIENT_NUM			10
 #define RASPBERRY_DEFAULT_LIMIT_DISTANCE	50
@@ -128,6 +129,7 @@ sdp_session_t *register_service(uint8_t rfcomm_channel) {
 	char str[256] = "";
 	sdp_uuid2strn(&svc_uuid, str, 256);
 	printf("Registering UUID %s\n", str);
+	syslog(LOG_NOTICE|LOG_USER, "Registering UUID %s\n", str);
 
 	// set the service class
 	sdp_uuid16_create(&svc_class_uuid, SERIAL_PORT_SVCLASS_ID);
@@ -191,11 +193,13 @@ char *read_msg_from_bluetooth (int sock, int i)
 	if (bytes_read > 0) 
 	{
 		printf("received : %s\n", buff);
+		syslog(LOG_NOTICE|LOG_USER, "received : %s\n", buff);
 		if (strncmp (buff, RASPBERRY_LIMIT_DISTANCE_STRING, limitStringLen) == 0)
 		{	
 			strcpy (buff2, buff + limitStringLen);
 			limitDistance = atoi (buff2);
 			printf("[Set] Limit Distance %d \n", limitDistance);
+			syslog(LOG_NOTICE|LOG_USER, "[Set] Limit Distance %d \n", limitDistance);
 		}
 	} 
 	else 
@@ -206,6 +210,7 @@ char *read_msg_from_bluetooth (int sock, int i)
 		
 		numClient--;
 		printf("[%s] read message error : %s", __func__, strerror(errno)); // TODO : check
+		syslog(LOG_ERR|LOG_USER, "[%s] read message error : %s", __func__, strerror(errno));
 	}
 }
 
@@ -217,6 +222,7 @@ void write_msg_in_bluetooth (int sock, char *message)
 	if (bytes_sent > 0) 
 	{
 		printf("sent : %s ", message);
+		//syslog(LOG_NOTICE|LOG_USER, "sent : %s ", message);
 	}
 }
 
@@ -295,6 +301,9 @@ int main()
 	if (wiringPiSetup() == -1)
 	{
 		printf ("[%s:%d] fail to call wiringPiSetup function: %s \n", __func__, __LINE__, strerror(errno));
+		syslog(LOG_ERR|LOG_USER, "[%s:%d] fail to call wiringPiSetup function: %s\n", 
+				__func__, __LINE__, strerror(errno));
+
 		exit(1) ;
 	}
 
@@ -312,14 +321,17 @@ int main()
 	// allocate socket
 	sock = socket(AF_BLUETOOTH, SOCK_STREAM, BTPROTO_RFCOMM);
 	printf("socket() returned %d\n", sock);
+	syslog(LOG_NOTICE|LOG_USER, "socket() returned %d\n", sock);
 
 	// bind socket to port 3 of the first available
 	result = bind(sock, (struct sockaddr *)&loc_addr, sizeof(loc_addr));
 	printf("bind() on channel %d returned %d\n", port, result);
+	syslog(LOG_NOTICE|LOG_USER, "bind() on channel %d returned %d\n", port, result);
 
 	// put socket into listening mode
 	result = listen(sock, RASPBERRY_MAX_CLIENT_NUM);
 	printf("listen() returned %d\n", result);
+	syslog(LOG_NOTICE|LOG_USER, "listen() returned %d\n", result);
 
 	while(1)
 	{
@@ -343,6 +355,7 @@ int main()
 				continue;
 
 			printf ("[%s] Select error : %s", __func__, strerror(errno));
+			syslog(LOG_ERR|LOG_USER, "[%s] Select error : %s", __func__, strerror(errno));
 
 			continue;
 		}    
@@ -356,6 +369,7 @@ int main()
 			{
 				connSock = accept(sock, (struct sockaddr *)&rem_addr, &opt);
 				printf("accept() returned %d\n", connSock);
+				syslog(LOG_NOTICE|LOG_USER, "accept() returned %d\n", connSock);
 			
 				clientSock[numClient++] = connSock;
 			}
