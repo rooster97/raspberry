@@ -25,7 +25,7 @@ SECRET_KEY = 'z(8=z&x#w4e10d=3c=p$p22vqoc@x^^+bc9jpd&k$onb9qrjiw'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = [u'192.168.0.25']
+ALLOWED_HOSTS = [u'192.168.0.25', u'glhan.ipdisk.co.kr']
 
 
 # Application definition

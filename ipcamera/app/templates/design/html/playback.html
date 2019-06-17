@@ -27,18 +27,20 @@
   <!-- header | end -->
   <!-- contents -->
   <div class="contents password">
+    <div class="side">
+	  <ul>
+	  {% for snapshot in snapshotNames %}
+	    <li><a href="../playback/{{snapshot}}">{{snapshot}}</a></li>
+	  {% endfor %}
+	  </ul>
+	</div>
     <div class="inner">
       <h3>Playback</h3>
       <img src="../../resources/images/soha.jpg" width=1000 border="2">
-      <div class="btn_wrap">
-        <button type="button">Save</button>
-      </div>
+      
     </div>
   </div>
   <!-- contents | end -->
-  <!-- footer -->
-  <footer>© PIOLINK. Inc. All rights reserved.</footer>
-  <!-- footer | end -->
 </div>
 </body>
 </html>

@@ -48,8 +48,8 @@ button:hover{ background-color:#aaaaab; }
 
 /* contents */
 .wrap .contents{ position:relative; padding:30px 0 30px 0; }
-/* .wrap .contents .side{ width:150px; float left; } */
-.wrap .contents .inner{ width:600px; margin:10; padding:20px; float left;}
+.wrap .contents .side{ width:300px; float: left; }
+.wrap .contents .inner{ width:600px; margin:10; padding:20px; float: left;}
 .wrap .contents  h3{ font-size:1.6em; line-height:1.6em; font-weight:normal; margin:0 0 10px 0; padding:0 0 0 26px; background:url(../../resources/images/bullet.png) no-repeat left; }
 
 .wrap .contents div.con{ padding:0 0 20px 26px; }
@@ -58,8 +58,8 @@ button:hover{ background-color:#aaaaab; }
 .wrap .contents table th{ text-align:left; line-height:2.8em; font-weight:normal; width:35%; }
 .wrap .contents table td{ text-align:left; line-height:2.8em; }
 .wrap .contents table td input[type=text]{ width:260px; }
-.wrap .contents .btn_wrap{ text-align:right; }
-.wrap .contents .btn_wrap button{ min-width:110px; line-height:1.2em; padding:5px; }
+.wrap .contents .btn_wrap{ text-align:right; float: left; box-shadow: 5px 5px 5px black; }
+.wrap .contents .btn_wrap button{ min-width:110px; line-height:1.2em; padding:5px;}
 .wrap .contents div.con hr{ margin:20px 0; border:none; border-top:1px dashed #ccc; }
 
 .wrap .contents h4{ font-size:1.1em; line-height:1.5em; margin:0 0 5px 0; }
