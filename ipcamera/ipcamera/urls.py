@@ -21,6 +21,7 @@ app_name = 'app'
 
 urlpatterns = [
 	url(r'^$', views.live),
+	url(r'^stream/$', views.stream),
 	url(r'^live/$', views.live),
 	url(r'^live_snapshot/$', views.live_snapshot),
 	url(r'^playback/$', views.playback),
