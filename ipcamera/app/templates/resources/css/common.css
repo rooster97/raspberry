@@ -59,7 +59,7 @@ button:hover{ background-color:#aaaaab; }
 .wrap .contents table td{ text-align:left; line-height:2.8em; }
 .wrap .contents table td input[type=text]{ width:260px; }
 .wrap .contents .btn_wrap{ text-align:right; float: left; box-shadow: 5px 5px 5px black; }
-.wrap .contents .btn_wrap button{ min-width:110px; line-height:1.2em; padding:5px;}
+.wrap .contents .btn_wrap button{ min-width:110px; line-height:1.2em; padding:5px; border:2px solid #555555}
 .wrap .contents div.con hr{ margin:20px 0; border:none; border-top:1px dashed #ccc; }
 
 .wrap .contents h4{ font-size:1.1em; line-height:1.5em; margin:0 0 5px 0; }
