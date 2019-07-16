@@ -14,9 +14,9 @@
     <!-- gnb -->
     <div class="gnb">
       <ul>
-        <li class="sel"><a href="../live">Live</a></li>
-        <li><a href="../playback">Playback</a></li>
-		<li><a href="../setting">Setting</a></li>
+        <li class="sel"><a href="{% url 'live' %}">Live</a></li>
+        <li><a href="{% url 'playback' %}">Playback</a></li>
+		<li><a href="{% url 'setting' %}">Setting</a></li>
 		<li><a href="admin.html">Admin</a></li>
 		<li><a href="live_tools.html">...</a></li> 
       </ul>
@@ -37,8 +37,9 @@
         <br>
         
 		<div class="btn_wrap">
-			<form action='../live_snapshot' method='GET'>
-              <button type="submit">Snap Shot</button>
+			<form action="{% url 'live' %}" method='post'>
+				{% csrf_token %}
+				<button type="submit">Snap Shot</button>
 			</form>
 			<form action='../live_left' method='GET'>
               <button type="submit">Left</button>

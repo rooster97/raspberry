@@ -14,9 +14,9 @@
     <!-- gnb -->
     <div class="gnb">
       <ul>
-        <li><a href="../live">Live</a></li>
-		<li class="sel"><a href="../playback">Playback</a></li>
-        <li><a href="setting">Setting</a></li>
+        <li><a href="{% url 'live' %}">Live</a></li>
+		<li class="sel"><a href="{% url 'playback' %}">Playback</a></li>
+        <li><a href="{% url 'setting' %}">Setting</a></li>
 		<li><a href="admin.html">Admin</a></li>
         <li><a href="live_tools.html">...</a></li>     
       </ul>

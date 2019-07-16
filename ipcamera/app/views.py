@@ -47,15 +47,14 @@ def stream2(request):
         pass
 
 def live(request):
+	if request.method == 'POST':
+		now = datetime.now()
+		fileName = PATH + now.strftime('%y%m%d_%H%M%S') + '.jpg' 
+		cmd = 'raspistill -o ' + fileName
+		print (cmd)
+		os.system (cmd) 
+	
 	return render(request, 'design/html/live.html')
-
-def live_snapshot(request):
- now = datetime.now()
- fileName = PATH + now.strftime('%y%m%d_%H%M%S') + '.jpg' 
- cmd = 'raspistill -o ' + fileName
- print (cmd)
- os.system (cmd) 
- return render(request, 'design/html/live.html')
 
 def playback(request):
  fileList = os.listdir(PATH)
@@ -68,4 +67,4 @@ def playback(request):
  return render(request, 'design/html/playback.html', {'snapshotNames' : snapshotNames}) # should be 'snapshotNames' and snapshotNames be same ?
 
 def setting(request):
- return render(request, 'design/html/setting.html')	
+ return render(request, 'design/html/setting.html')

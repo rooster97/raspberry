@@ -20,11 +20,10 @@ from app import views
 app_name = 'app'
 
 urlpatterns = [
-	url(r'^$', views.live),
+	url(r'^$', views.live, name='live'),
 	url(r'^stream2/$', views.stream2, name='stream2'),
-	url(r'^live/$', views.live),
-	url(r'^live_snapshot/$', views.live_snapshot),
-	url(r'^playback/$', views.playback),
-	url(r'^setting/$', views.setting),
+	url(r'^live/$', views.live, name='live'),
+	url(r'^playback/$', views.playback, name='playback'),
+	url(r'^setting/$', views.setting, name='setting'),
 	url(r'^admin/', admin.site.urls),
 ]
