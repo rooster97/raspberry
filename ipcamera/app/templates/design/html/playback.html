@@ -27,15 +27,17 @@
   <!-- contents -->
   <div class="contents password">
     <div class="side">
+	{% if image_list %}
 	  <ul>
-	  {% for snapshot in snapshotNames %}
-	    <li><a href="../playback/{{snapshot}}">{{snapshot}}</a></li>
+	  {% for image in image_list %}
+	    <li><a href="{% url 'playback' %}{{image.image_name}}">{{image.image_name}}</a></li>
 	  {% endfor %}
 	  </ul>
+	{% endif %}		  
 	</div>
     <div class="inner">
       <h3>Playback</h3>
-      <img src="../../resources/images/soha.jpg" width=1000 border="2">
+      <img src="../../resources/images/{{select_image}}.png" width=1000 border="2">
       
     </div>
   </div>

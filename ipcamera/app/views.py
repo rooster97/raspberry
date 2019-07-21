@@ -3,16 +3,20 @@ from __future__ import unicode_literals
 from django.http import HttpResponse
 from django.template import loader
 from django.shortcuts import render
+from django.utils import timezone
 import numpy as np
 import threading
 from django.http import StreamingHttpResponse
 from datetime import datetime
 import os
 import cv2
+from app.models import Image
+
 
 # Create your views here.
  
-PATH = '/home/pi/raspberry/ipcamera/app/templates/resources/images/'
+directory = os.getcwd()
+filePath = directory + '/app/templates/resources/images/'
 
 class VideoCamera(object):
 	def __init__(self):
@@ -32,6 +36,15 @@ class VideoCamera(object):
 		while True:
 			(self.grabbed, self.frame) = self.video.read()
 
+	def take_frame(self):
+		now = datetime.now()
+		fileName = filePath + now.strftime('%y%m%d_%H%M%S') + '.png'
+		print (fileName)
+		cv2.imwrite(fileName, self.frame)
+
+		db = Image(image_name=now.strftime('%y%m%d_%H%M%S'), pub_date=timezone.now())
+		db.save()
+
 cam = VideoCamera()
 
 def gen(camera):
@@ -48,23 +61,18 @@ def stream2(request):
 
 def live(request):
 	if request.method == 'POST':
-		now = datetime.now()
-		fileName = PATH + now.strftime('%y%m%d_%H%M%S') + '.jpg' 
-		cmd = 'raspistill -o ' + fileName
-		print (cmd)
-		os.system (cmd) 
-	
+		cam.take_frame()
+
 	return render(request, 'design/html/live.html')
 
 def playback(request):
- fileList = os.listdir(PATH)
- snapshotNames = []
- for fileName in fileList:
-  if fileName[6] == '_': # Check snapshot. More verification is need.
-   name = fileName[:13]  # Delete .jpg from file name
-   snapshotNames.append(name)
+	image_list = Image.objects.all()
+	return render(request, 'design/html/playback.html',
+							{'image_list' : image_list})
 
- return render(request, 'design/html/playback.html', {'snapshotNames' : snapshotNames}) # should be 'snapshotNames' and snapshotNames be same ?
-
+def playback_show(request, select_image):
+	image_list = Image.objects.all()
+	return render(request, 'design/html/playback.html',
+							{'image_list' : image_list,  'select_image' : select_image})
 def setting(request):
  return render(request, 'design/html/setting.html')

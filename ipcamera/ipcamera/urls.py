@@ -24,6 +24,7 @@ urlpatterns = [
 	url(r'^stream2/$', views.stream2, name='stream2'),
 	url(r'^live/$', views.live, name='live'),
 	url(r'^playback/$', views.playback, name='playback'),
+	url(r'^playback/(?P<select_image>\w+)/$', views.playback_show, name='playback_show'),
 	url(r'^setting/$', views.setting, name='setting'),
 	url(r'^admin/', admin.site.urls),
 ]

@@ -48,7 +48,7 @@ button:hover{ background-color:#aaaaab; }
 
 /* contents */
 .wrap .contents{ position:relative; padding:30px 0 30px 0; }
-.wrap .contents .side{ width:300px; float: left; }
+.wrap .contents .side{ width:200px; float: left; }
 .wrap .contents .inner{ width:600px; margin:10; padding:20px; float: left;}
 .wrap .contents  h3{ font-size:1.6em; line-height:1.6em; font-weight:normal; margin:0 0 10px 0; padding:0 0 0 26px; background:url(../../resources/images/bullet.png) no-repeat left; }
 
